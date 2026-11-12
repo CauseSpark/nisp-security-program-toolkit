@@ -1,0 +1,11 @@
+employee_id,employee_name,role,course_id,course_name,rule_ref,assigned_date,due_date,completed_date,status
+EMP-001,Jordan Avery (fictional),FSO,FSO-ROLE,FSO role training,117.12,2026-01-05,2026-03-31,2026-02-20,Complete
+EMP-001,Jordan Avery (fictional),FSO,ITP-SPECIAL,Insider threat program personnel training,117.12(g),2026-01-05,2026-03-31,2026-03-02,Complete
+EMP-001,Jordan Avery (fictional),FSO,ANNUAL-REFRESH,Annual security refresher,117.12,2026-01-05,2026-12-31,2026-06-15,Complete
+EMP-002,Casey Morgan (fictional),Engineer,INIT-BRIEF,Initial security briefing,117.12,2026-04-01,2026-04-01,2026-04-01,Complete
+EMP-002,Casey Morgan (fictional),Engineer,INT101,Insider threat awareness,117.12(g),2026-04-01,2026-04-01,2026-04-01,Complete
+EMP-002,Casey Morgan (fictional),Engineer,DERIV-CLASS,Derivative classification,117.13,2026-04-01,2026-05-01,,Overdue
+EMP-003,Riley Chen (fictional),Program Manager,ANNUAL-REFRESH,Annual security refresher,117.12,2026-01-05,2026-12-31,,Assigned
+EMP-003,Riley Chen (fictional),Program Manager,INT101,Insider threat awareness,117.12(g),2026-01-05,2026-12-31,2026-09-10,Complete
+EMP-004,Sam Okafor (fictional),Technician,ANNUAL-REFRESH,Annual security refresher,117.12,2026-01-05,2026-10-31,,Overdue
+EMP-005,Taylor Brooks (fictional),Departing Analyst,DEBRIEF,Security debriefing,117.12,2026-11-01,2026-11-14,,Assigned
