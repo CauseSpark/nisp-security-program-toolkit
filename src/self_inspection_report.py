@@ -26,6 +26,7 @@ VALID_STATUSES = {"yes": "Yes", "no": "No", "n/a": "N/A", "na": "N/A", "": ""}
 SECTION_RE = re.compile(r"^##\s+(117\.\d+)\s+(.*?)\s*$")
 ITEM_ID_RE = re.compile(r"^[A-Z]{2,6}-\d{2,3}$")
 
+DEFAULT_COMPANY = "Larkspur Systems, Inc. (fictional)"
 DISCLAIMER = (
     "Personal study output. Not an official DCSA product and not a substitute for the "
     "DCSA Self-Inspection Handbook or the current text of 32 CFR Part 117."
@@ -51,9 +52,6 @@ class Section:
     number: str
     title: str
     items: list[Item] = field(default_factory=list)
-
-    def count(self, status: str) -> int:
-        return sum(1 for i in self.items if i.status == status)
 
 
 def _split_row(line: str) -> list[str]:
@@ -109,46 +107,31 @@ def compliance_rate(yes: int, no: int) -> float | None:
     return None if answered == 0 else round(100.0 * yes / answered, 1)
 
 
-def summarize(sections: list[Section], company: str = "Larkspur Systems, Inc. (fictional)",
+def tally(items: list[Item]) -> dict:
+    """Counts by status and the compliance rate for one section or the whole checklist."""
+    count = {status: sum(1 for i in items if i.status == status) for status in ("Yes", "No", "N/A", "")}
+    return {
+        "total": len(items),
+        "yes": count["Yes"],
+        "no": count["No"],
+        "na": count["N/A"],
+        "not_answered": count[""],
+        "compliance_rate": compliance_rate(count["Yes"], count["No"]),
+    }
+
+
+def summarize(sections: list[Section], company: str = DEFAULT_COMPANY,
               report_date: str | None = None) -> dict:
-    rows = []
-    totals = {"Yes": 0, "No": 0, "N/A": 0, "": 0}
-    for s in sections:
-        counts = {k: s.count(k) for k in totals}
-        for k, v in counts.items():
-            totals[k] += v
-        rows.append({
-            "section": s.number,
-            "title": s.title,
-            "total": len(s.items),
-            "yes": counts["Yes"],
-            "no": counts["No"],
-            "na": counts["N/A"],
-            "not_answered": counts[""],
-            "compliance_rate": compliance_rate(counts["Yes"], counts["No"]),
-        })
-
     all_items = [i for s in sections for i in s.items]
-    findings = [asdict(i) for i in all_items if i.status == "No"]
-    unanswered = [asdict(i) for i in all_items if i.status == ""]
-    total = len(all_items)
-
+    overall = tally(all_items)
     return {
         "company": company,
         "report_date": report_date or date.today().isoformat(),
         "disclaimer": DISCLAIMER,
-        "overall": {
-            "total": total,
-            "yes": totals["Yes"],
-            "no": totals["No"],
-            "na": totals["N/A"],
-            "not_answered": totals[""],
-            "compliance_rate": compliance_rate(totals["Yes"], totals["No"]),
-            "complete": totals[""] == 0,
-        },
-        "sections": rows,
-        "findings": findings,
-        "unanswered": unanswered,
+        "overall": {**overall, "complete": overall["not_answered"] == 0},
+        "sections": [{"section": s.number, "title": s.title, **tally(s.items)} for s in sections],
+        "findings": [asdict(i) for i in all_items if i.status == "No"],
+        "unanswered": [asdict(i) for i in all_items if i.status == ""],
     }
 
 
@@ -209,7 +192,7 @@ def render_markdown(summary: dict) -> str:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Summarize a completed self-inspection checklist.")
     p.add_argument("checklist", type=Path, help="Path to the completed checklist Markdown file")
-    p.add_argument("--company", default="Larkspur Systems, Inc. (fictional)")
+    p.add_argument("--company", default=DEFAULT_COMPANY)
     p.add_argument("--format", choices=["md", "json"], default="md")
     p.add_argument("--output", "-o", type=Path, help="Write report to this file instead of stdout")
     p.add_argument("--date", dest="report_date", help="Report date (YYYY-MM-DD); defaults to today")
